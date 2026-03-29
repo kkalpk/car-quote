@@ -224,7 +224,7 @@
         .upload-area {
             border: 2px dashed #c0cad8;
             border-radius: 12px;
-            padding: 20px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
@@ -520,13 +520,42 @@
                 <div class="section-label">3. Έγγραφα</div>
 
                 <div class="form-group">
-                    <label>Ανεβάστε τα έγγραφά σας <span class="required">*</span></label>
+                    <label>Άδεια κυκλοφορίας <span class="required">*</span></label>
                     <div class="upload-area" onclick="this.querySelector('input').click()">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <div class="upload-text"><strong>Πατήστε εδώ</strong> για να επιλέξετε αρχεία</div>
-                        <div class="upload-hint">Άδεια κυκλοφορίας, δίπλωμα οδηγού, τιμολόγιο αγοράς, προηγούμενο συμβόλαιο, ή οτιδήποτε άλλο σχετικό</div>
-                        <input type="file" name="documents" accept="image/*,.pdf" multiple onchange="handleMultiUpload(this)">
-                        <div class="file-list"></div>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
+                        <input type="file" name="adeia" accept="image/*,.pdf" onchange="handleUpload(this)">
+                        <div class="file-name"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Δίπλωμα οδηγού <span class="required">*</span></label>
+                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
+                        <input type="file" name="diploma" accept="image/*,.pdf" onchange="handleUpload(this)">
+                        <div class="file-name"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Τιμολόγιο αγοράς <span class="hint">(αν υπάρχει)</span></label>
+                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
+                        <input type="file" name="timologio" accept="image/*,.pdf" onchange="handleUpload(this)">
+                        <div class="file-name"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Προηγούμενο συμβόλαιο / Άλλο <span class="hint">(αν υπάρχει)</span></label>
+                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
+                        <input type="file" name="other" accept="image/*,.pdf" onchange="handleUpload(this)">
+                        <div class="file-name"></div>
                     </div>
                 </div>
 
@@ -645,18 +674,15 @@
             input.setSelectionRange(formatted.length, formatted.length);
         }
 
-        // Multi-file upload — no compression, direct
-        function handleMultiUpload(input) {
+        // Single file upload handler
+        function handleUpload(input) {
             var area = input.closest('.upload-area');
             if (input.files.length > 0) {
                 area.classList.add('has-file');
-                var list = area.querySelector('.file-list');
-                list.innerHTML = '';
-                for (var i = 0; i < input.files.length; i++) {
-                    var kb = Math.round(input.files[i].size / 1024);
-                    list.innerHTML += '✓ ' + input.files[i].name + ' (' + kb + 'KB)<br>';
-                }
-                area.querySelector('.upload-hint').textContent = 'Πατήστε ξανά για να προσθέσετε αρχεία';
+                var fn = area.querySelector('.file-name');
+                fn.textContent = '✓ ' + input.files[0].name;
+                fn.style.display = 'block';
+                area.querySelector('.upload-text').style.display = 'none';
             }
         }
 
