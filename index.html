@@ -334,11 +334,12 @@
                 Συμπληρώστε τα παρακάτω και θα σας στείλουμε <strong>ανταγωνιστικές προσφορές</strong> επιλεγμένες από <strong>25 ασφαλιστικές εταιρείες</strong> άμεσα.
             </div>
 
-            <form id="quoteForm">
+            <form id="quoteForm" action="https://formsubmit.co/kk@pkinsurance.gr" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="_cc" value="support@pkinsurance.gr,pk@pkinsurance.gr">
                 <input type="hidden" name="_subject" value="Νέο Αίτημα Προσφοράς Ασφάλισης Αυτοκινήτου">
                 <input type="hidden" name="_captcha" value="false">
                 <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_next" value="https://kkalpk.github.io/car-quote/thanks.html">
 
                 <!-- ======================== -->
                 <!-- SECTION 1: COVERAGE      -->
@@ -644,69 +645,18 @@
             input.setSelectionRange(formatted.length, formatted.length);
         }
 
-        // Compress image to max ~800KB
-        function compressImage(file, maxSizeKB) {
-            return new Promise(function(resolve) {
-                if (!file.type.startsWith('image/')) { resolve(file); return; }
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var img = new Image();
-                    img.onload = function() {
-                        var canvas = document.createElement('canvas');
-                        var maxDim = 1600;
-                        var w = img.width, h = img.height;
-                        if (w > maxDim || h > maxDim) {
-                            if (w > h) { h = h * maxDim / w; w = maxDim; }
-                            else { w = w * maxDim / h; h = maxDim; }
-                        }
-                        canvas.width = w;
-                        canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        var quality = 0.7;
-                        var dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        // Convert back to File
-                        var arr = dataUrl.split(','), mime = arr[0].match(/:(.*?);/)[1];
-                        var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
-                        while (n--) u8[n] = bstr.charCodeAt(n);
-                        var compressed = new File([u8], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
-                        resolve(compressed);
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Compress all files
-        function compressFiles(files) {
-            var promises = [];
-            for (var i = 0; i < files.length; i++) {
-                promises.push(compressImage(files[i], 800));
-            }
-            return Promise.all(promises);
-        }
-
-        // Store compressed files globally
-        var compressedFiles = [];
-
-        // Multi-file upload with compression
+        // Multi-file upload — no compression, direct
         function handleMultiUpload(input) {
             var area = input.closest('.upload-area');
             if (input.files.length > 0) {
                 area.classList.add('has-file');
                 var list = area.querySelector('.file-list');
-                list.innerHTML = '<span style="color:#b45309;">Επεξεργασία...</span>';
-                compressFiles(input.files).then(function(files) {
-                    compressedFiles = files;
-                    list.innerHTML = '';
-                    var totalKB = 0;
-                    for (var i = 0; i < files.length; i++) {
-                        var kb = Math.round(files[i].size / 1024);
-                        totalKB += kb;
-                        list.innerHTML += '✓ ' + files[i].name + ' (' + kb + 'KB)<br>';
-                    }
-                    area.querySelector('.upload-hint').textContent = 'Πατήστε ξανά για να προσθέσετε αρχεία';
-                });
+                list.innerHTML = '';
+                for (var i = 0; i < input.files.length; i++) {
+                    var kb = Math.round(input.files[i].size / 1024);
+                    list.innerHTML += '✓ ' + input.files[i].name + ' (' + kb + 'KB)<br>';
+                }
+                area.querySelector('.upload-hint').textContent = 'Πατήστε ξανά για να προσθέσετε αρχεία';
             }
         }
 
@@ -717,57 +667,8 @@
             el.querySelector('input[type="radio"]').checked = true;
         }
 
-        // Form submit — sends to Formspree (replace YOUR_FORM_ID)
-        document.getElementById('quoteForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Collect form data
-            var fd = new FormData(this);
-
-            // Replace original files with compressed versions
-            fd.delete('documents');
-            for (var i = 0; i < compressedFiles.length; i++) {
-                fd.append('documents', compressedFiles[i]);
-            }
-
-            // Collect checked features
-            var feats = [];
-            document.querySelectorAll('input[name="feat"]:checked').forEach(function(cb) { feats.push(cb.value); });
-            fd.set('features', feats.join(', ') || 'Κανένα');
-
-            // Collect extra coverages
-            var extras = [];
-            document.querySelectorAll('input[name="extra"]:checked').forEach(function(cb) { extras.push(cb.value); });
-            fd.set('extra_coverages', extras.join(', ') || 'Κανένα');
-
-            // Send with compressed files
-            fetch('https://formsubmit.co/kk@pkinsurance.gr', {
-                method: 'POST',
-                body: fd,
-                headers: { 'Accept': 'application/json' }
-            })
-            .then(function(r) {
-                if (r.ok) { showSuccess(); return; }
-                // Fallback: retry without files
-                fd.delete('documents');
-                fd.set('documents_note', 'Αρχεία δεν σταλθηκαν - ο πελάτης θα τα στείλει με email');
-                return fetch('https://formsubmit.co/kk@pkinsurance.gr', {
-                    method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
-                });
-            })
-            .then(function(r) { if (r && !r.ok) throw new Error(); if (r) showSuccess(true); })
-            .catch(function() { alert('Σφάλμα σύνδεσης. Δοκιμάστε ξανά.'); });
-        });
-
-        function showSuccess(filesFailed) {
-            document.getElementById('quoteForm').style.display = 'none';
-            document.querySelector('.form-intro').style.display = 'none';
-            document.getElementById('successScreen').style.display = 'block';
-            if (filesFailed) {
-                document.getElementById('filesNote').style.display = 'block';
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        // Coverage selection
+        // (form submits normally via POST, no JavaScript needed)
     </script>
 </body>
 </html>
