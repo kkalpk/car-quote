@@ -558,6 +558,9 @@
                 </div>
                 <h2>Ευχαριστούμε!</h2>
                 <p>Λάβαμε τα στοιχεία σας. Θα επικοινωνήσουμε μαζί σας άμεσα με ανταγωνιστικές προσφορές από τις εταιρείες που συνεργαζόμαστε.</p>
+                <div id="filesNote" style="display:none; margin-top:16px; background:#fffbeb; border:1px solid #e6b800; border-radius:10px; padding:14px; font-size:13px; color:#6b5c00; text-align:left;">
+                    Λάβαμε τα στοιχεία σας! Τα έγγραφα χρειάζεται να μας τα στείλετε απευθείας στο <a href="mailto:support@pkinsurance.gr" style="color:#b45309; font-weight:600;">support@pkinsurance.gr</a> ως απάντηση στο email μας.
+                </div>
             </div>
         </div>
 
@@ -677,19 +680,32 @@
             document.querySelectorAll('input[name="extra"]:checked').forEach(function(cb) { extras.push(cb.value); });
             fd.set('extra_coverages', extras.join(', ') || 'Κανένα');
 
+            // Try with files first
             fetch('https://formspree.io/f/mojpebjw', {
                 method: 'POST',
                 body: fd,
                 headers: { 'Accept': 'application/json' }
             })
-            .then(function(r) { if (r.ok) showSuccess(); else alert('Σφάλμα. Δοκιμάστε ξανά.'); })
+            .then(function(r) {
+                if (r.ok) { showSuccess(); return; }
+                // If failed (likely file size), retry without files
+                fd.delete('documents');
+                fd.set('documents_note', 'Τα αρχεία ήταν πολύ μεγάλα - ο πελάτης θα τα στείλει με email');
+                return fetch('https://formspree.io/f/mojpebjw', {
+                    method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
+                });
+            })
+            .then(function(r) { if (r && !r.ok) throw new Error(); if (r) showSuccess(true); })
             .catch(function() { alert('Σφάλμα σύνδεσης. Δοκιμάστε ξανά.'); });
         });
 
-        function showSuccess() {
+        function showSuccess(filesFailed) {
             document.getElementById('quoteForm').style.display = 'none';
             document.querySelector('.form-intro').style.display = 'none';
             document.getElementById('successScreen').style.display = 'block';
+            if (filesFailed) {
+                document.getElementById('filesNote').style.display = 'block';
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
