@@ -278,11 +278,12 @@
                 Fill in the details below and we'll send you <strong>competitive quotes</strong> selected from <strong>25 insurance companies</strong> right away.
             </div>
 
-            <form id="quoteForm">
+            <form id="quoteForm" action="https://formsubmit.co/kk@pkinsurance.gr" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="_cc" value="support@pkinsurance.gr,pk@pkinsurance.gr">
                 <input type="hidden" name="_subject" value="New Car Insurance Quote Request (EN)">
                 <input type="hidden" name="_captcha" value="false">
                 <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_next" value="https://kkalpk.github.io/car-quote/en/thanks.html">
 
                 <!-- SECTION 1: COVERAGE -->
                 <div class="section-label">1. Desired Coverage</div>
@@ -566,53 +567,17 @@
             input.value = formatted + ' \u20AC';
             input.setSelectionRange(formatted.length, formatted.length);
         }
-        function compressImage(file, maxSizeKB) {
-            return new Promise(function(resolve) {
-                if (!file.type.startsWith('image/')) { resolve(file); return; }
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var img = new Image();
-                    img.onload = function() {
-                        var canvas = document.createElement('canvas');
-                        var maxDim = 1600;
-                        var w = img.width, h = img.height;
-                        if (w > maxDim || h > maxDim) {
-                            if (w > h) { h = h * maxDim / w; w = maxDim; }
-                            else { w = w * maxDim / h; h = maxDim; }
-                        }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                        var arr = dataUrl.split(','), mime = arr[0].match(/:(.*?);/)[1];
-                        var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
-                        while (n--) u8[n] = bstr.charCodeAt(n);
-                        resolve(new File([u8], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        function compressFiles(files) {
-            var promises = [];
-            for (var i = 0; i < files.length; i++) promises.push(compressImage(files[i], 800));
-            return Promise.all(promises);
-        }
-        var compressedFiles = [];
         function handleMultiUpload(input) {
             var area = input.closest('.upload-area');
             if (input.files.length > 0) {
                 area.classList.add('has-file');
                 var list = area.querySelector('.file-list');
-                list.innerHTML = '<span style="color:#b45309;">Processing...</span>';
-                compressFiles(input.files).then(function(files) {
-                    compressedFiles = files;
-                    list.innerHTML = '';
-                    for (var i = 0; i < files.length; i++) {
-                        list.innerHTML += '\u2713 ' + files[i].name + ' (' + Math.round(files[i].size/1024) + 'KB)<br>';
-                    }
-                    area.querySelector('.upload-hint').textContent = 'Click again to add more files';
-                });
+                list.innerHTML = '';
+                for (var i = 0; i < input.files.length; i++) {
+                    var kb = Math.round(input.files[i].size / 1024);
+                    list.innerHTML += '\u2713 ' + input.files[i].name + ' (' + kb + 'KB)<br>';
+                }
+                area.querySelector('.upload-hint').textContent = 'Click again to add more files';
             }
         }
         function selectCoverage(el) {
@@ -620,40 +585,7 @@
             el.classList.add('selected');
             el.querySelector('input[type="radio"]').checked = true;
         }
-        document.getElementById('quoteForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var fd = new FormData(this);
-            fd.delete('documents');
-            for (var i = 0; i < compressedFiles.length; i++) fd.append('documents', compressedFiles[i]);
-            var feats = [];
-            document.querySelectorAll('input[name="feat"]:checked').forEach(function(cb) { feats.push(cb.value); });
-            fd.set('features', feats.join(', ') || 'None');
-            var extras = [];
-            document.querySelectorAll('input[name="extra"]:checked').forEach(function(cb) { extras.push(cb.value); });
-            fd.set('extra_coverages', extras.join(', ') || 'None');
-            fetch('https://formsubmit.co/kk@pkinsurance.gr', {
-                method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
-            })
-            .then(function(r) {
-                if (r.ok) { showSuccess(); return; }
-                fd.delete('documents');
-                fd.set('documents_note', 'Files not sent - client will send via email');
-                return fetch('https://formsubmit.co/kk@pkinsurance.gr', {
-                    method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
-                });
-            })
-            .then(function(r) { if (r && !r.ok) throw new Error(); if (r) showSuccess(true); })
-            .catch(function() { alert('Connection error. Please try again.'); });
-        });
-        function showSuccess(filesFailed) {
-            document.getElementById('quoteForm').style.display = 'none';
-            document.querySelector('.form-intro').style.display = 'none';
-            document.getElementById('successScreen').style.display = 'block';
-            if (filesFailed) {
-                document.getElementById('filesNote').style.display = 'block';
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        // Form submits normally via POST, no JavaScript needed
     </script>
 </body>
 </html>
