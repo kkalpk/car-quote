@@ -642,17 +642,69 @@
             input.setSelectionRange(formatted.length, formatted.length);
         }
 
-        // Multi-file upload
+        // Compress image to max ~800KB
+        function compressImage(file, maxSizeKB) {
+            return new Promise(function(resolve) {
+                if (!file.type.startsWith('image/')) { resolve(file); return; }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var canvas = document.createElement('canvas');
+                        var maxDim = 1600;
+                        var w = img.width, h = img.height;
+                        if (w > maxDim || h > maxDim) {
+                            if (w > h) { h = h * maxDim / w; w = maxDim; }
+                            else { w = w * maxDim / h; h = maxDim; }
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        var quality = 0.7;
+                        var dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        // Convert back to File
+                        var arr = dataUrl.split(','), mime = arr[0].match(/:(.*?);/)[1];
+                        var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
+                        while (n--) u8[n] = bstr.charCodeAt(n);
+                        var compressed = new File([u8], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+                        resolve(compressed);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Compress all files
+        function compressFiles(files) {
+            var promises = [];
+            for (var i = 0; i < files.length; i++) {
+                promises.push(compressImage(files[i], 800));
+            }
+            return Promise.all(promises);
+        }
+
+        // Store compressed files globally
+        var compressedFiles = [];
+
+        // Multi-file upload with compression
         function handleMultiUpload(input) {
             var area = input.closest('.upload-area');
             if (input.files.length > 0) {
                 area.classList.add('has-file');
                 var list = area.querySelector('.file-list');
-                list.innerHTML = '';
-                for (var i = 0; i < input.files.length; i++) {
-                    list.innerHTML += '✓ ' + input.files[i].name + '<br>';
-                }
-                area.querySelector('.upload-hint').textContent = 'Πατήστε ξανά για να προσθέσετε αρχεία';
+                list.innerHTML = '<span style="color:#b45309;">Επεξεργασία...</span>';
+                compressFiles(input.files).then(function(files) {
+                    compressedFiles = files;
+                    list.innerHTML = '';
+                    var totalKB = 0;
+                    for (var i = 0; i < files.length; i++) {
+                        var kb = Math.round(files[i].size / 1024);
+                        totalKB += kb;
+                        list.innerHTML += '✓ ' + files[i].name + ' (' + kb + 'KB)<br>';
+                    }
+                    area.querySelector('.upload-hint').textContent = 'Πατήστε ξανά για να προσθέσετε αρχεία';
+                });
             }
         }
 
@@ -670,6 +722,12 @@
             // Collect form data
             var fd = new FormData(this);
 
+            // Replace original files with compressed versions
+            fd.delete('documents');
+            for (var i = 0; i < compressedFiles.length; i++) {
+                fd.append('documents', compressedFiles[i]);
+            }
+
             // Collect checked features
             var feats = [];
             document.querySelectorAll('input[name="feat"]:checked').forEach(function(cb) { feats.push(cb.value); });
@@ -680,7 +738,7 @@
             document.querySelectorAll('input[name="extra"]:checked').forEach(function(cb) { extras.push(cb.value); });
             fd.set('extra_coverages', extras.join(', ') || 'Κανένα');
 
-            // Try with files first
+            // Send with compressed files
             fetch('https://formspree.io/f/mojpebjw', {
                 method: 'POST',
                 body: fd,
@@ -688,9 +746,9 @@
             })
             .then(function(r) {
                 if (r.ok) { showSuccess(); return; }
-                // If failed (likely file size), retry without files
+                // Fallback: retry without files
                 fd.delete('documents');
-                fd.set('documents_note', 'Τα αρχεία ήταν πολύ μεγάλα - ο πελάτης θα τα στείλει με email');
+                fd.set('documents_note', 'Αρχεία δεν σταλθηκαν - ο πελάτης θα τα στείλει με email');
                 return fetch('https://formspree.io/f/mojpebjw', {
                     method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
                 });
