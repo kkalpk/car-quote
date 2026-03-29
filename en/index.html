@@ -604,10 +604,13 @@
             .then(function(r) { if (r && !r.ok) throw new Error(); if (r) showSuccess(true); })
             .catch(function() { alert('Connection error. Please try again.'); });
         });
-        function showSuccess() {
+        function showSuccess(filesFailed) {
             document.getElementById('quoteForm').style.display = 'none';
             document.querySelector('.form-intro').style.display = 'none';
             document.getElementById('successScreen').style.display = 'block';
+            if (filesFailed) {
+                document.getElementById('filesNote').style.display = 'block';
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
