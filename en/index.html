@@ -494,6 +494,9 @@
                 </div>
                 <h2>Thank you!</h2>
                 <p>We've received your details. We'll get back to you shortly with competitive quotes from our partner insurance companies.</p>
+                <div id="filesNote" style="display:none; margin-top:16px; background:#fffbeb; border:1px solid #e6b800; border-radius:10px; padding:14px; font-size:13px; color:#6b5c00; text-align:left;">
+                    We've received your details! Please send your documents directly to <a href="mailto:support@pkinsurance.gr" style="color:#b45309; font-weight:600;">support@pkinsurance.gr</a> as a reply to our email.
+                </div>
             </div>
         </div>
 
@@ -590,7 +593,15 @@
             fetch('https://formspree.io/f/mojpebjw', {
                 method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
             })
-            .then(function(r) { if (r.ok) showSuccess(); else alert('Error. Please try again.'); })
+            .then(function(r) {
+                if (r.ok) { showSuccess(); return; }
+                fd.delete('documents');
+                fd.set('documents_note', 'Files too large - client will send via email');
+                return fetch('https://formspree.io/f/mojpebjw', {
+                    method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
+                });
+            })
+            .then(function(r) { if (r && !r.ok) throw new Error(); if (r) showSuccess(true); })
             .catch(function() { alert('Connection error. Please try again.'); });
         });
         function showSuccess() {
