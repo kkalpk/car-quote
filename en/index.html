@@ -281,6 +281,8 @@
             <form id="quoteForm">
                 <input type="hidden" name="_cc" value="support@pkinsurance.gr,pk@pkinsurance.gr">
                 <input type="hidden" name="_subject" value="New Car Insurance Quote Request (EN)">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="table">
 
                 <!-- SECTION 1: COVERAGE -->
                 <div class="section-label">1. Desired Coverage</div>
@@ -629,14 +631,14 @@
             var extras = [];
             document.querySelectorAll('input[name="extra"]:checked').forEach(function(cb) { extras.push(cb.value); });
             fd.set('extra_coverages', extras.join(', ') || 'None');
-            fetch('https://formspree.io/f/mojpebjw', {
+            fetch('https://formsubmit.co/kk@pkinsurance.gr', {
                 method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
             })
             .then(function(r) {
                 if (r.ok) { showSuccess(); return; }
                 fd.delete('documents');
                 fd.set('documents_note', 'Files not sent - client will send via email');
-                return fetch('https://formspree.io/f/mojpebjw', {
+                return fetch('https://formsubmit.co/kk@pkinsurance.gr', {
                     method: 'POST', body: fd, headers: { 'Accept': 'application/json' }
                 });
             })
