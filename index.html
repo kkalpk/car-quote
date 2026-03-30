@@ -373,17 +373,19 @@
                     </div>
                 </div>
 
+                <input type="hidden" name="Θραύση Κρυστάλλων" id="glassHidden" value="Ναι">
+                <input type="hidden" name="Οδική Βοήθεια" id="roadsideHidden" value="Ναι">
                 <div style="margin-top: 14px;">
                     <div class="form-group">
                         <label>Επιπλέον καλύψεις <span class="hint">(τσεκάρετε για να συμπεριληφθούν)</span></label>
                         <div class="yn-grid">
-                            <div class="yn-item checked" onclick="toggleYN(this)">
-                                <input type="checkbox" name="extra" value="Θραύση κρυστάλλων" checked>
+                            <div class="yn-item checked" onclick="toggleExtra(this, 'glassHidden', 'Ναι', 'Όχι')">
+                                <input type="checkbox" checked>
                                 <div class="yn-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
                                 <span class="yn-text">Θραύση κρυστάλλων</span>
                             </div>
-                            <div class="yn-item checked" onclick="toggleYN(this)">
-                                <input type="checkbox" name="extra" value="Οδική βοήθεια" checked>
+                            <div class="yn-item checked" onclick="toggleExtra(this, 'roadsideHidden', 'Ναι', 'Όχι')">
+                                <input type="checkbox" checked>
                                 <div class="yn-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
                                 <span class="yn-text">Οδική βοήθεια</span>
                             </div>
@@ -521,7 +523,7 @@
 
                 <div class="form-group">
                     <label>Άδεια κυκλοφορίας <span class="required">*</span></label>
-                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                    <div class="upload-area" onclick="this.querySelector('input[type=file]').click()">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
                         <input type="file" name="adeia" accept="image/*,.pdf" onchange="handleUpload(this)">
@@ -531,7 +533,7 @@
 
                 <div class="form-group">
                     <label>Δίπλωμα οδηγού <span class="required">*</span></label>
-                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                    <div class="upload-area" onclick="this.querySelector('input[type=file]').click()">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
                         <input type="file" name="diploma" accept="image/*,.pdf" onchange="handleUpload(this)">
@@ -541,7 +543,7 @@
 
                 <div class="form-group">
                     <label>Τιμολόγιο αγοράς <span class="hint">(αν υπάρχει)</span></label>
-                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                    <div class="upload-area" onclick="this.querySelector('input[type=file]').click()">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
                         <input type="file" name="timologio" accept="image/*,.pdf" onchange="handleUpload(this)">
@@ -551,7 +553,7 @@
 
                 <div class="form-group">
                     <label>Προηγούμενο συμβόλαιο / Άλλο <span class="hint">(αν υπάρχει)</span></label>
-                    <div class="upload-area" onclick="this.querySelector('input').click()">
+                    <div class="upload-area" onclick="this.querySelector('input[type=file]').click()">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8899aa" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <div class="upload-text"><strong>Επιλέξτε 1 αρχείο</strong></div>
                         <input type="file" name="other" accept="image/*,.pdf" onchange="handleUpload(this)">
@@ -566,14 +568,19 @@
                 <!-- ======================== -->
                 <div class="section-label">4. Στοιχεία επικοινωνίας</div>
 
+                <div class="form-group">
+                    <label>Ονοματεπώνυμο <span class="required">*</span></label>
+                    <input type="text" name="name" placeholder="π.χ. Γιάννης Παπαδόπουλος" required>
+                </div>
+
                 <div style="display:flex; gap:12px;">
                     <div class="form-group" style="flex:1;">
                         <label>Email</label>
                         <input type="email" name="email" placeholder="email@example.com">
                     </div>
                     <div class="form-group" style="flex:1;">
-                        <label>Κινητό</label>
-                        <input type="tel" name="phone" placeholder="69XXXXXXXX">
+                        <label>Κινητό <span class="required">*</span></label>
+                        <input type="tel" name="phone" placeholder="69XXXXXXXX" required>
                     </div>
                 </div>
 
@@ -627,6 +634,14 @@
             var cb = el.querySelector('input[type="checkbox"]');
             cb.checked = !cb.checked;
             el.classList.toggle('checked', cb.checked);
+        }
+
+        // Toggle extra coverage with hidden field (always submitted)
+        function toggleExtra(el, hiddenId, yesVal, noVal) {
+            var cb = el.querySelector('input[type="checkbox"]');
+            cb.checked = !cb.checked;
+            el.classList.toggle('checked', cb.checked);
+            document.getElementById(hiddenId).value = cb.checked ? yesVal : noVal;
         }
 
         // Roof mutual exclusivity
@@ -708,8 +723,19 @@
             el.querySelector('input[type="radio"]').checked = true;
         }
 
-        // Coverage selection
-        // (form submits normally via POST, no JavaScript needed)
+        // Form validation on submit
+        document.getElementById('quoteForm').addEventListener('submit', function(e) {
+            var name = this.querySelector('input[name="name"]');
+            var phone = this.querySelector('input[name="phone"]');
+            var missing = [];
+            if (!name.value.trim()) missing.push('Ονοματεπώνυμο');
+            if (!phone.value.trim()) missing.push('Κινητό');
+            if (missing.length) {
+                e.preventDefault();
+                alert('Παρακαλώ συμπληρώστε: ' + missing.join(', '));
+                (missing[0] === 'Ονοματεπώνυμο' ? name : phone).focus();
+            }
+        });
     </script>
 </body>
 </html>
